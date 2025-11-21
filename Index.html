@@ -83,6 +83,12 @@
         box-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
     }
 
+    button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
     p, a {
         color: #fff;
         font-size: 15px;
@@ -98,6 +104,12 @@
         color: #ffebee;
         font-weight: bold;
     }
+    
+    #success {
+        margin-top: 10px;
+        color: #c8e6c9;
+        font-weight: bold;
+    }
 </style>
 </head>
 <body>
@@ -107,29 +119,75 @@
         <input id="user" placeholder="Username" />
         <input id="pass" type="password" placeholder="Password" />
 
-        <button onclick="login()">Login</button>
+        <button id="loginBtn" onclick="login()">Login</button>
 
-        <p>Don't have an account? <a href="https://protaskmanagerapp.netlify.app/">Signup</a></p>
+        <p>Don't have an account? <a href="signup">Signup</a></p>
 
         <p id="error"></p>
+        <p id="success"></p>
     </div>
 
     <script>
+        // Allow Enter key to submit
+        document.getElementById("pass").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                login();
+            }
+        });
+
         function login() {
-            let u = document.getElementById("user").value;
+            let u = document.getElementById("user").value.trim();
             let p = document.getElementById("pass").value;
+            let errorMsg = document.getElementById("error");
+            let successMsg = document.getElementById("success");
+            let loginBtn = document.getElementById("loginBtn");
+
+            // Clear previous messages
+            errorMsg.innerText = "";
+            successMsg.innerText = "";
+
+            // Validation
+            if (!u || !p) {
+                errorMsg.innerText = "Please enter both username and password";
+                return;
+            }
 
             let savedU = localStorage.getItem("user");
             let savedP = localStorage.getItem("pass");
 
+            console.log("Attempting login...");
+            console.log("Entered username:", u);
+            console.log("Saved username:", savedU);
+            console.log("Password match:", p === savedP);
+
             if (u === savedU && p === savedP) {
-                // Set current user for user-specific tasks
+                // Disable button to prevent double clicks
+                loginBtn.disabled = true;
+                loginBtn.innerText = "Logging in...";
+                
+                // Set current user
                 localStorage.setItem("currentUser", u);
-                window.location.href = "  https://physicsan.netlify.app/";
+                
+                successMsg.innerText = "Login successful! Redirecting...";
+                
+                // Pass username via URL parameter for cross-domain communication
+                setTimeout(function() {
+                    window.location.href ="app.html";
+                }, 1000);
             } else {
-                document.getElementById("error").innerText = "Wrong username or password";
+                if (!savedU || !savedP) {
+                    errorMsg.innerText = "No account found. Please sign up first.";
+                } else {
+                    errorMsg.innerText = "Wrong username or password";
+                }
             }
         }
+
+        // Debug: Show stored credentials (remove in production)
+        window.onload = function() {
+            console.log("Stored username:", localStorage.getItem("user"));
+            console.log("Has stored password:", !!localStorage.getItem("pass"));
+        };
     </script>
 </body>
 </html>
